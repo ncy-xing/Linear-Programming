@@ -30,17 +30,52 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[En
     Attempts to match all drivers to customers, minimizing the total distance traveled. 
     One driver will be matched to one rider. 
     TODO If drivers < riders, some riders will not be matched. 
-    TODO If riders > drivers, some drivers will not be matched. TODO 
+    TODO If riders > drivers, some drivers will not be matched.  
 
     drivers -- List of drivers to be matched
     riders -- List of riders to be matched
     """
-    driver_contraints = [] # Each item is all the variables associated with one driver 
-    rider_contraints = [] # Each item is all the variables associated with one rider 
+    objective = []
+    num_matches = min(len(drivers), len(riders))
+    driver_constraints = [] # Each item is all the variables associated with one driver 
+    rider_constraints = [] # Each item is all the variables associated with one rider 
+    match_constraints = []
     lp = LpProblem("Match_Drivers", LpMinimize)
     
-        
+    # Driver constraints
+    for i in range(len(drivers)):
+        d_constraints = []
+        driver = drivers[i]
+        for j in range(len(riders)): 
+            rider = riders[j]
+            x = LpVariable(name=f"x_{i}{j}", lowBound=0, cat="Integer")
+            d_constraints.append((x, f"x_{i}{j}"))
+            match_constraints.append((x, f"x_{i}{j}")) # Only in one itreration
+            distance = driver.distance_from(rider.x, rider.y)
+            objective.append((x, distance))
+        driver_constraints.append(d_constraints)
+    
+    # Rider constraints
+    for i in range(len(riders)):
+        rider = riders[i]
+        r_constraints = []
+        for j in range(len(drivers)):
+            driver = drivers[j]
+            x = LpVariable(name=f"x_{j}{i}", lowBound=0, cat="Integer")
+            distance = driver.distance_from(rider.x, rider.y)
+            r_constraints.append((x, f"x_{j}{i}"))
+            objective.append((x, distance))
+        rider_constraints.append(r_constraints)
+    
+    print(f"driver_constraints: {[d for d in driver_constraints]}")
+    print(f"rider_constraints: {[r for r in rider_constraints]}")
+    print(f"objective: {objective}")
+    print(f"match constraints: {match_constraints}")
 
+    # Plug into LP solver
+    # TODO add constraint: every item in drivers and riders should add to # of drivers/riders 
+    # TODO add constraint: sum of every variable should == num matches 
+    
 def main(input_file_name):
     # Parse file data 
     with open(input_file_name, "r") as file:
@@ -53,14 +88,15 @@ def main(input_file_name):
     riders = []
     for i in range(num_drivers):
         coords = data.pop(0).split()
-        drivers.append(Entity("driver", f"0{i}", coords[0], coords[1]))
+        drivers.append(Entity("driver", f"0{i}", int(coords[0]), int(coords[1])))
     for i in range(num_riders):
         coords = data.pop(0).split()
-        riders.append(Entity("driver", f"0{i}", coords[0], coords[1]))
-    for i in drivers:
-        print(i)
+        riders.append(Entity("driver", f"0{i}", int(coords[0]), int(coords[1])))
+    # for i in drivers:
+    #     print(i)
+        
     # Solve LP
-    # solution = match_drivers(drivers, riders)
+    solution = match_drivers(drivers, riders)
     # Primal 
     # lp = LpProblem("Bakery_Problem", LpMaximize)
 
