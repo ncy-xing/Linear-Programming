@@ -1,12 +1,18 @@
+"""
+TODO
+Grid size at top of file relevant? 
+Assume int distances? 
+"""
 from pulp import * 
 import sys
 
 class Entity:
     """ Represents an entity at position (x, y). """
 
-    def __init__(self, identifier : str="Entity", x : int=0, y : int=0) -> None:
+    def __init__(self, type : str="Entity", id : str="#", x : int=0, y : int=0) -> None:
         """ Initialize cordinates. """
-        self.identifier = identifier
+        self.type = type
+        self.id = id
         self.x = x
         self.y = y
     
@@ -16,22 +22,25 @@ class Entity:
 
     def __str__(self) -> str:
         """ Returns serialized version of entity. """
-        return f"{self.identifier} at ({self.x}, {self.y})"
+        return f"{self.type} {self.id} at ({self.x}, {self.y})"
 
 
 def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[Entity]]:
     """
     Attempts to match all drivers to customers, minimizing the total distance traveled. 
     One driver will be matched to one rider. 
-    If drivers < riders, some riders will not be matched. TODO
-    If riders > drivers, some drivers will not be matched. TODO 
+    TODO If drivers < riders, some riders will not be matched. 
+    TODO If riders > drivers, some drivers will not be matched. TODO 
 
     drivers -- List of drivers to be matched
     riders -- List of riders to be matched
     """
-    pass 
+    driver_contraints = [] # Each item is all the variables associated with one driver 
+    rider_contraints = [] # Each item is all the variables associated with one rider 
+    lp = LpProblem("Match_Drivers", LpMinimize)
+    
         
-        
+
 def main(input_file_name):
     # Parse file data 
     with open(input_file_name, "r") as file:
@@ -44,11 +53,14 @@ def main(input_file_name):
     riders = []
     for i in range(num_drivers):
         coords = data.pop(0).split()
-        drivers.append(Entity(coords[0], coords[1], "driver"))
+        drivers.append(Entity("driver", f"0{i}", coords[0], coords[1]))
     for i in range(num_riders):
         coords = data.pop(0).split()
-        riders.append(Entity(coords[0], coords[1], "rider"))
-
+        riders.append(Entity("driver", f"0{i}", coords[0], coords[1]))
+    for i in drivers:
+        print(i)
+    # Solve LP
+    # solution = match_drivers(drivers, riders)
     # Primal 
     # lp = LpProblem("Bakery_Problem", LpMaximize)
 
