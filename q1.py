@@ -11,21 +11,14 @@ def main():
 
     #Add the objective function
     lp += 10 * x1 + 5 * x2
-    # print(lp.objective)
 
     # Add the constraints
     lp += (5 * x1 + x2 <= 90, "oven_constraint")
     lp += (x1 + 10 * x2 <= 300, "food_processor_constraint")
     lp += (4 * x1 + 6 * x2 <= 125, "boiler_constraint")
-    # print(lp.constraints)
 
     # Solve the LP
     status = lp.solve(PULP_CBC_CMD(msg=0))
-    # print("Status:", status) #1:optimal, 2:not solved, 3:infeasible, 4:unbounded, 5:undef
-    
-    #Print solution
-    # for var in lp.variables():
-    #     print(var, "=", value(var))
     print("Primal OPT =", value(lp.objective))
 
     # Dual solution
@@ -43,11 +36,8 @@ def main():
 
     # Solve
     dual_status = dual_lp.solve(PULP_CBC_CMD(msg=0))
-    # print("Status:", dual_status) #1:optimal, 2:not solved, 3:infeasible, 4:unbounded, 5:undef
 
     #Print solution
-    # for var in dual_lp.variables():
-    #     print(var, "=", value(var))
     print("Dual OPT =", value(lp.objective))
 
 
