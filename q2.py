@@ -38,21 +38,29 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[En
     """
     objective = []
     num_matches = min(len(drivers), len(riders))
+    vars = []
     driver_vars = []
     rider_vars = []
     driver_constraints = [] # Each item is all the variables associated with one driver 
     rider_constraints = [] # Each item is all the variables associated with one rider 
     match_constraint_vars = []
     
+    # Populate matrix of variables, row=driver, col=rider 
+    for i in range(len(drivers)):
+        row = []
+        for j in range(len(riders)): 
+            row.append(LpVariable(name=f"x_{i}{j}", lowBound=0, cat="Integer"))
+        vars.append(row)
+
     # Driver constraints
     for i in range(len(drivers)):
         d_constraints = []
         driver = drivers[i]
         for j in range(len(riders)): 
             rider = riders[j]
-            x = LpVariable(name=f"x_{i}{j}", lowBound=0, cat="Integer")
+            x = vars[i][j]
             d_constraints.append((x, f"x_{i}{j}"))
-            match_constraint_vars.append((x, f"x_{i}{j}")) # Only in one itreration
+            match_constraint_vars.append((x, f"x_{i}{j}")) # TODO remove f''; note this is only in one itreration 
             distance = driver.distance_from(rider.x, rider.y)
             objective.append((x, distance))
             driver_vars.append(x)
@@ -64,7 +72,7 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[En
         r_constraints = []
         for j in range(len(drivers)):
             driver = drivers[j]
-            x = LpVariable(name=f"x_{j}{i}", lowBound=0, cat="Integer")
+            x = vars[j][i]
             distance = driver.distance_from(rider.x, rider.y)
             r_constraints.append((x, f"x_{j}{i}"))
             objective.append((x, distance))
@@ -112,7 +120,7 @@ def main(input_file_name):
     # Parse file data 
     with open(input_file_name, "r") as file:
         data = file.readlines()
-        grid_size = int(data.pop(0))
+        # grid_size = int(data.pop(0))
         num_drivers = int(data.pop(0))
         num_riders = int(data.pop(0))
     print(f"Drivers: {num_drivers}\nRiders: {num_riders}")
@@ -156,5 +164,5 @@ def main(input_file_name):
     # print("Primal OPT =", value(lp.objective))
 
 if __name__ == "__main__":
-    main("tests/2.txt")
+    main("tests/3.txt")
     # main(sys.argv[1])
