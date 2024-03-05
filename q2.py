@@ -2,6 +2,7 @@
 TODO
 Grid size at top of file relevant? 
 Assume int distances? 
+TODO Error handle bad file read-in, 0 number of drivers/riders
 """
 from pulp import * 
 import sys
@@ -37,10 +38,11 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[En
     """
     objective = []
     num_matches = min(len(drivers), len(riders))
+    driver_vars = []
+    rider_vars = []
     driver_constraints = [] # Each item is all the variables associated with one driver 
     rider_constraints = [] # Each item is all the variables associated with one rider 
-    match_constraints = []
-    lp = LpProblem("Match_Drivers", LpMinimize)
+    match_constraint_vars = []
     
     # Driver constraints
     for i in range(len(drivers)):
@@ -50,9 +52,10 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[En
             rider = riders[j]
             x = LpVariable(name=f"x_{i}{j}", lowBound=0, cat="Integer")
             d_constraints.append((x, f"x_{i}{j}"))
-            match_constraints.append((x, f"x_{i}{j}")) # Only in one itreration
+            match_constraint_vars.append((x, f"x_{i}{j}")) # Only in one itreration
             distance = driver.distance_from(rider.x, rider.y)
             objective.append((x, distance))
+            driver_vars.append(x)
         driver_constraints.append(d_constraints)
     
     # Rider constraints
@@ -65,17 +68,46 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[En
             distance = driver.distance_from(rider.x, rider.y)
             r_constraints.append((x, f"x_{j}{i}"))
             objective.append((x, distance))
+            rider_vars.append(x)
         rider_constraints.append(r_constraints)
     
     print(f"driver_constraints: {[d for d in driver_constraints]}")
     print(f"rider_constraints: {[r for r in rider_constraints]}")
     print(f"objective: {objective}")
-    print(f"match constraints: {match_constraints}")
+    print(f"match constraints: {match_constraint_vars}")
 
     # Plug into LP solver
-    # TODO add constraint: every item in drivers and riders should add to # of drivers/riders 
-    # TODO add constraint: sum of every variable should == num matches 
+    lp = LpProblem("Match_Drivers", LpMinimize)
+    # add objective function
+    lp += lpSum([i[0] * i[1] for i in objective])
+    # Select one choice per driver/rider
+    for i in range(len(driver_constraints)):
+        driver = driver_constraints[i]
+        constraint = lpSum([d[0] for d in driver]) 
+        lp += (constraint <= 1, f"driver_constraint_{i}")
+    for i in range(len(rider_constraints)):
+        rider = rider_constraints[i]
+        constraint = lpSum([r[0] for r in rider])
+        lp += (constraint <= 1, f"rider_constraint_{i}")
+    # add constraint: every item in drivers and riders should add to # of drivers/riders 
+    # num_driver_constraint = lpSum([d for d in driver_vars])
+    # num_rider_constraint = lpSum([r for r in rider_vars])
+    # lp += (num_driver_constraint >= len(drivers), "num_driver_matches") # TODO excess?
+    # lp += (num_rider_constraint >= len(riders), "num_rider_matches") # TODO excess?
+    #  add constraint: sum of every variable should == num matches 
+    match_constraint = lpSum([i[0] for i in match_constraint_vars]) 
+    lp += (match_constraint >= num_matches, "num_total_matches")
     
+    print(lp)
+    # Solve
+    status = lp.solve(PULP_CBC_CMD(msg=0))
+    print("Status:", status)
+    #Print solution
+    for var in lp.variables():
+        print(var, "=", value(var))
+    print("Primal OPT =", value(lp.objective))
+
+
 def main(input_file_name):
     # Parse file data 
     with open(input_file_name, "r") as file:
@@ -124,5 +156,5 @@ def main(input_file_name):
     # print("Primal OPT =", value(lp.objective))
 
 if __name__ == "__main__":
-    main("tests/1.txt")
+    main("tests/2.txt")
     # main(sys.argv[1])

@@ -22,7 +22,7 @@ def main():
     # Solve the LP
     status = lp.solve(PULP_CBC_CMD(msg=0))
     # print("Status:", status) #1:optimal, 2:not solved, 3:infeasible, 4:unbounded, 5:undef
-
+    
     #Print solution
     # for var in lp.variables():
     #     print(var, "=", value(var))
