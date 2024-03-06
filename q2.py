@@ -107,6 +107,7 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> None:
     lp += (match_constraint >= num_matches, "num_total_matches")
     
     # Solve
+    lp.solve(PULP_CBC_CMD(msg=0))
     print("\nMatches (driver_rider): ")
     for var in lp.variables():
         if value(var) == 1.0:
