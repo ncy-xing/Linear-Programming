@@ -9,14 +9,15 @@ LP Formulation:
 Let there be n > 0 drivers and m > 0 riders placed on a 2-D grid. 
 
 MINIMIZE 
-x_ij * (distance_ij) for i in range (1...n) and j in range (1...m)
+For all i in range (1...n) and j in range (1...m)
+x_ij * (distance_ij) 
 SUCH THAT
-x_i1 + x_i2 + x_i3 + ... = 1, for all i in range (1...n) 
-x_1j + x_2j + x_3j + ... = 1, for all j in range (1...m)
+x_i1 + x_i2 + x_i3 + ... = 1, 
+x_1j + x_2j + x_3j + ... = 1, 
+x_11 + x_12 + ... + x_ij = min(n, m)
 
 Where distance_ij is the Manhattan distance between driver i and rider j,
 (|x_driver - x_rider| + |y_driver - y_rider|)
-
 """
 from pulp import * 
 import sys
@@ -40,10 +41,10 @@ class Entity:
         return f"{self.type} {self.id} at ({self.x}, {self.y})"
 
 
-def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[Entity]]:
+def match_drivers(drivers : List[Entity], riders: List[Entity]) -> None:
     """
     Attempts to match all drivers to customers, minimizing the total distance traveled. 
-    One driver will be matched to one rider. 
+    One driver will be matched to one rider. Prints matches. 
 
     drivers -- List of drivers to be matched
     riders -- List of riders to be matched
@@ -113,7 +114,7 @@ def match_drivers(drivers : List[Entity], riders: List[Entity]) -> List[tuple[En
     print(f"Total pick-up time: {value(lp.objective)}")
 
 
-def main(input_file_name):
+def main(input_file_name : str) -> None:
     # Parse file data 
     with open(input_file_name, "r") as file:
         data = file.readlines()
